@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html> 
+
+<body>
+
+    <script src="jquery.js"></script>
+
+	<center>
+	<canvas id="mc" width="1000" height="400" style="border:1px solid";>
+	</canvas>
+	
+	<h1>
+	<div id="prompt"></div>
+	</h1></center>
+
+
+<script>
+	var width = 1000, height = 400;
+	var boxes = [];
+	boxes.push(new Box(50,200,10,50, 0, 0)); //controller 1
+	boxes.push(new Box(950,200,10,50, 0, 0)); //controller 2
+	boxes.push(new Box(500,200,20,20, getRandomInt(10,10), getRandomInt(10,10))); //ball
+	var p1 = boxes[0];
+	var p2 = boxes[1];
+	var pong = boxes[2];
+	pong.isPong = true;
+	var PADDLESPEED = 15;
+
+	function getRandomInt(min, max){
+		return Math.floor(Math.random()*(max-min+1))+min;
+	}
+
+	function update(){
+		ctx.fillStyle = "#000000";
+		ctx.fillRect(0,0,width,height);
+		for(var i = 0; i < boxes.length; i+=1) {
+			boxes[i].update();
+			boxes[i].draw(ctx);
+		}
+	}
+	var c = document.getElementById("mc");
+	var ctx = c.getContext("2d");
+	$(document).keydown (function (e) {
+		if (e.keyCode == 65)
+			p1.vY = PADDLESPEED;
+		if (e.keyCode == 81)
+			p1.vY = -PADDLESPEED;
+		if (e.keyCode == 40)
+			p2.vY = PADDLESPEED;
+		if (e.keyCode == 38)
+			p2.vY = -PADDLESPEED;
+	});
+	$(document).keyup (function (e) {
+		if (e.keyCode == 65)
+			p1.vY = 0;
+		if (e.keyCode == 81)
+			p1.vY = 0;
+		if (e.keyCode == 40)
+			p2.vY = 0;
+		if (e.keyCode == 38)
+			p2.vY = 0;
+	});
+	setInterval(update, 40);
+
+	function Box (x, y, width, height, vX, vY) {
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
+		this.vX = vX;
+		this.vY = vY;
+	}
+
+	Box.prototype.draw = function(ctx){
+		ctx.fillStyle = "#FF0000";
+		ctx.fillRect(this.x,this.y,this.width,this.height);
+	}
+
+	Box.prototype.update = function() {
+		if (this.isPong == true) {
+			if (collision(this, p1)) {
+				this.vX = -this.vX+5;
+			}
+			else if (collision(this, p2)) {
+				this.vX = -this.vX-5;
+			}
+		}
+		this.x += this.vX;
+		this.y += this.vY;
+			
+		// herixontal bounding
+		if (this.x >= width-this.width) {
+			//this.vX = -this.vX;
+			document.getElementById("prompt").innerHTML = "Player 1 Wins!";
+		}
+		else if (this.x <= 0){
+			//this.vX = -this.vX;
+			document.getElementById("prompt").innerHTML = "Player 2 Wins!";
+		}	
+		//vertical bounding	
+		if (this.isPong && (this.y >= height-this.height || this.y <= 0)) {
+			this.vY = -this.vY;
+		}
+		if (this.isPong)
+			return;
+		if (this.y < 0)
+			this.y = 0;
+		if (this.y + this.height > height)
+			this.y = height - this.height;
+	}
+
+	function collision(p1, p2){
+		var p1LX = p1.x; //pong left x
+		var p1LY = p1.y; 
+		var p1RX = p1.x + p1.width;
+		var p1RY = p1.y + p1.height; // pong right y
+
+		var p2LX = p2.x; //pong left x
+		var p2LY = p2.y; 
+		var p2RX = p2.x + p2.width;
+		var p2RY = p2.y + p2.height; // pong right y
+
+		if (((p1RX <= p2RX && p1RX >= p2LX) ||
+			(p1LX <= p2RX && p1LX >= p2LX)) && 
+			((p1LY <= p2RY && p1LY >= p2LY) ||
+ 			(p1RY <= p2RY && p1RY >= p2LY ))
+			)  
+		{
+			return true;
+		} 
+
+		return false;
+	}
+
+
+</script>
+
+</body>
+</html>
